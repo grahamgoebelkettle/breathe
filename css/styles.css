@@ -421,13 +421,13 @@ body {
   font-weight: 500;
   letter-spacing: 0.05em;
   color: var(--text-primary, #e8eef5);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .technique-description {
   position: fixed;
-  top: calc(2rem + 1.5rem + 1.125rem); /* below the name */
+  top: calc(2rem + 1.5rem + 0.4rem); /* below the name, tighter gap */
   left: 50%;
   transform: translateX(-50%);
   max-width: 400px;
@@ -583,7 +583,7 @@ body {
   -webkit-appearance: none;
   flex: 1;
   height: 4px;
-  background: rgba(168, 197, 226, 0.2);
+  background: color-mix(in srgb, var(--accent, #a8c5e2) 20%, transparent);
   border-radius: 2px;
   cursor: pointer;
 }
@@ -666,11 +666,11 @@ body {
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
-    #5ab0e8 0deg,
-    #48d4a8 90deg,
-    #7060e0 180deg,
-    #c060c0 260deg,
-    #5ab0e8 360deg
+    #4aa8e0 0deg,
+    #7ac4f0 90deg,
+    #4aa8e0 180deg,
+    #2a88c8 270deg,
+    #4aa8e0 360deg
   );
   filter: blur(16px);
   -webkit-mask: radial-gradient(circle at center, transparent 71%, black 79%);
@@ -696,34 +696,94 @@ body {
 
 .orb-ring-outer {
   inset: 0;
-  border: 1.5px solid rgba(200, 220, 255, 0.55);
+  border: 1.5px solid rgba(90, 176, 232, 0.55);
   box-shadow:
-    0 0 8px  2px rgba(160, 200, 255, 0.50),
-    0 0 25px 6px rgba(120, 170, 240, 0.25),
-    0 0 60px 12px rgba(100, 140, 220, 0.12),
-    0 0 100px 20px rgba(80, 110, 200, 0.05);
+    0 0 8px  2px rgba(90, 176, 232, 0.50),
+    0 0 25px 6px rgba(90, 176, 232, 0.25),
+    0 0 60px 12px rgba(90, 176, 232, 0.12),
+    0 0 100px 20px rgba(90, 176, 232, 0.05);
 }
 
-/* Sunset theme — warm orange glow */
+/* Sunset theme — warm terracotta, full-ring */
 body[data-theme="sunset"] .orb-corona {
   background: conic-gradient(
     from 0deg,
-    transparent 0deg,
-    transparent 200deg,
-    color-mix(in srgb, var(--accent, #dc8c78) 30%, #f0a040) 245deg,
-    color-mix(in srgb, var(--accent, #dc8c78) 65%, #ffb830) 280deg,
-    color-mix(in srgb, var(--accent, #dc8c78) 30%, #f0a040) 315deg,
-    transparent 360deg
+    #e08860 0deg,
+    #f0a878 90deg,
+    #e08860 180deg,
+    #c87048 270deg,
+    #e08860 360deg
   );
 }
-
 body[data-theme="sunset"] .orb-ring-outer {
-  border-color: color-mix(in srgb, var(--accent, #dc8c78) 70%, #ffcc60);
+  border-color: rgba(232, 146, 106, 0.55);
   box-shadow:
-    0 0 8px  2px color-mix(in srgb, var(--accent, #dc8c78) 70%, #e08030),
-    0 0 25px 6px color-mix(in srgb, var(--accent, #dc8c78) 45%, #c06020),
-    0 0 60px 12px color-mix(in srgb, var(--accent, #dc8c78) 20%, #a04010),
-    0 0 100px 20px color-mix(in srgb, var(--accent, #dc8c78) 8%, #803010);
+    0 0 8px  2px rgba(232, 146, 106, 0.50),
+    0 0 25px 6px rgba(232, 146, 106, 0.25),
+    0 0 60px 12px rgba(232, 146, 106, 0.12),
+    0 0 100px 20px rgba(232, 146, 106, 0.05);
+}
+
+/* Forest theme — pure green, full-ring */
+body[data-theme="forest"] .orb-corona {
+  background: conic-gradient(
+    from 0deg,
+    #40c870 0deg,
+    #68e090 90deg,
+    #40c870 180deg,
+    #28a858 270deg,
+    #40c870 360deg
+  );
+}
+body[data-theme="forest"] .orb-ring-outer {
+  border-color: rgba(80, 216, 128, 0.55);
+  box-shadow:
+    0 0 8px  2px rgba(80, 216, 128, 0.50),
+    0 0 25px 6px rgba(80, 216, 128, 0.25),
+    0 0 60px 12px rgba(80, 216, 128, 0.12),
+    0 0 100px 20px rgba(80, 216, 128, 0.05);
+}
+
+/* Lavender/Dim theme — near-invisible for low light */
+body[data-theme="lavender"] .orb-corona {
+  background: conic-gradient(
+    from 0deg,
+    #303030 0deg,
+    #484848 90deg,
+    #303030 180deg,
+    #202020 270deg,
+    #303030 360deg
+  );
+  opacity: 0.3;
+}
+body[data-theme="lavender"] .orb-ring-outer {
+  border-color: rgba(90, 90, 90, 0.22);
+  box-shadow:
+    0 0 8px  2px rgba(80, 80, 80, 0.10),
+    0 0 25px 6px rgba(60, 60, 60, 0.06),
+    0 0 60px 12px rgba(40, 40, 40, 0.03),
+    0 0 100px 20px rgba(20, 20, 20, 0.01);
+}
+
+/* Midnight/Mono theme — subtle gray, reduced opacity */
+body[data-theme="midnight"] .orb-corona {
+  background: conic-gradient(
+    from 0deg,
+    #909090 0deg,
+    #b8b8b8 90deg,
+    #909090 180deg,
+    #686868 270deg,
+    #909090 360deg
+  );
+  opacity: 0.45;
+}
+body[data-theme="midnight"] .orb-ring-outer {
+  border-color: rgba(120, 120, 120, 0.35);
+  box-shadow:
+    0 0 8px  2px rgba(120, 120, 120, 0.28),
+    0 0 25px 6px rgba(120, 120, 120, 0.14),
+    0 0 60px 12px rgba(120, 120, 120, 0.07),
+    0 0 100px 20px rgba(120, 120, 120, 0.03);
 }
 
 .orb-ring-inner {
@@ -906,7 +966,7 @@ body[data-theme="sunset"] .orb-ring-outer {
    ============================================ */
 .round-display {
   font-size: 0.9375rem;
-  color: rgba(168, 197, 226, 0.55);
+  color: color-mix(in srgb, var(--text-secondary, #a8c5e2) 70%, transparent);
   letter-spacing: 0.03em;
   transition: opacity 0.3s ease;
 }
