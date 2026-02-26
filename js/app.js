@@ -43,6 +43,7 @@ const elements = {
   techniqueName: document.getElementById('technique-name'),
   techniqueDescription: document.getElementById('technique-description'),
   resonanceControls: document.getElementById('resonance-controls'),
+  resonanceCloseBtn: document.getElementById('resonance-close-btn'),
   resonanceSlider: document.getElementById('resonance-slider'),
   resonanceValue: document.getElementById('resonance-value'),
   phaseLabel: document.getElementById('phase-label'),
@@ -56,6 +57,7 @@ const elements = {
   completionMessage: document.getElementById('completion-message'),
   muteBtn: document.getElementById('mute-btn'),
   themeButtons: document.querySelectorAll('.theme-btn'),
+  themeCycleBtn: document.getElementById('theme-cycle-btn'),
   phaseTimeline: document.getElementById('phase-timeline'),
   breathOrb: document.getElementById('breath-orb'),
 };
@@ -133,23 +135,40 @@ function setBreathingActive(isActive) {
 // Theme Switcher
 // ============================================
 
+const THEMES = ['ocean', 'sunset', 'forest', 'lavender', 'midnight'];
+
+// Swatch gradients mirroring CSS, used to colour the cycle button
+const THEME_GRADIENTS = {
+  ocean:    'linear-gradient(135deg, #78b4c8, #8cc8b4)',
+  sunset:   'linear-gradient(135deg, #dc8c78, #c8a078)',
+  forest:   'linear-gradient(135deg, #78b48c, #8cb478)',
+  lavender: 'linear-gradient(135deg, #1a1a1a, #0a0a0a)',
+  midnight: 'linear-gradient(135deg, #d0d0d0, #a0a0a0)',
+};
+
 function setTheme(themeName) {
   document.body.setAttribute('data-theme', themeName);
 
-  // Update active state on buttons
   elements.themeButtons.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.theme === themeName);
   });
 
-  // Save to localStorage
+  // Keep cycle button's swatch circle in sync via CSS variable
+  if (elements.themeCycleBtn) {
+    elements.themeCycleBtn.style.setProperty(
+      '--swatch-gradient',
+      THEME_GRADIENTS[themeName] || THEME_GRADIENTS.ocean
+    );
+  }
+
   localStorage.setItem('breathe-theme', themeName);
 }
 
 function loadSavedTheme() {
   const savedTheme = localStorage.getItem('breathe-theme');
-  if (savedTheme) {
-    setTheme(savedTheme);
-  }
+  // Initialise cycle button with current/default theme swatch
+  const active = savedTheme || 'ocean';
+  setTheme(active);
 }
 
 function setupThemeSelector() {
@@ -158,6 +177,16 @@ function setupThemeSelector() {
       setTheme(btn.dataset.theme);
     });
   });
+
+  // Mobile: single button cycles through all themes
+  if (elements.themeCycleBtn) {
+    elements.themeCycleBtn.addEventListener('click', () => {
+      const current = document.body.getAttribute('data-theme') || 'ocean';
+      const idx = THEMES.indexOf(current);
+      const next = THEMES[(idx + 1) % THEMES.length];
+      setTheme(next);
+    });
+  }
 }
 
 // ============================================
@@ -197,13 +226,14 @@ function selectTechnique(techniqueId) {
     icon.classList.toggle('active', icon.dataset.technique === techniqueId);
   });
 
-  // Update header with technique name and description
-  if (elements.techniqueName) {
-    elements.techniqueName.textContent = technique.name;
-  }
-  if (elements.techniqueDescription) {
-    elements.techniqueDescription.textContent = technique.description;
-  }
+  // Fade out → swap text → fade in
+  const fadeEls = [elements.techniqueName, elements.techniqueDescription].filter(Boolean);
+  fadeEls.forEach(el => el.classList.add('fading'));
+  setTimeout(() => {
+    if (elements.techniqueName) elements.techniqueName.textContent = technique.name;
+    if (elements.techniqueDescription) elements.techniqueDescription.textContent = technique.description;
+    fadeEls.forEach(el => el.classList.remove('fading'));
+  }, 350);
 
   // Show/hide resonance controls
   elements.resonanceControls.style.display = technique.isResonance ? 'flex' : 'none';
@@ -675,8 +705,12 @@ function updatePlayButton() {
   } else {
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
-    // Show play button, hide status/timer
+    // Show play button with scale-in animation, hide status/timer
     elements.playBtn.style.display = '';
+    elements.playBtn.classList.remove('scale-in');
+    // Force reflow so the animation retriggers each time
+    void elements.playBtn.offsetWidth;
+    elements.playBtn.classList.add('scale-in');
     if (elements.orbStatus) elements.orbStatus.style.display = 'none';
     if (elements.orbTimer) elements.orbTimer.style.display = 'none';
   }
@@ -687,12 +721,21 @@ function updatePlayButton() {
 // ============================================
 
 function setupEventListeners() {
-  // Play/Pause button
-  elements.playBtn.addEventListener('click', () => {
-    if (state.isPlaying && !state.isPaused) {
-      pauseSession();
-    } else {
+  // Play button — only starts the session, never pauses
+  elements.playBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // don't bubble to orb handler
+    if (!state.isPlaying || state.isPaused) {
       startSession();
+    }
+  });
+
+  // Tapping the orb while running pauses; while paused resumes
+  elements.breathOrb.addEventListener('click', () => {
+    if (!state.isPlaying) return;
+    if (state.isPaused) {
+      startSession();
+    } else {
+      pauseSession();
     }
   });
 
@@ -707,6 +750,13 @@ function setupEventListeners() {
       loadPhaseSequence();
     }
   });
+
+  // Resonance close button (mobile)
+  if (elements.resonanceCloseBtn) {
+    elements.resonanceCloseBtn.addEventListener('click', () => {
+      elements.resonanceControls.style.display = 'none';
+    });
+  }
 
   // Mute toggle
   elements.muteBtn.addEventListener('click', () => {
