@@ -22,6 +22,36 @@ const state = {
 // Audio Context for soft chimes
 let audioCtx = null;
 
+// ─── Haptic feedback ──────────────────────────────────────────────────────────
+// Patterns (ms): light = quick tap, medium = second tick, strong = action
+const HAPTIC = { light: 8, medium: 14, strong: 22 };
+
+// Web Audio context reused for silent fallback click when vibration unavailable
+let hapticCtx = null;
+
+function haptic(type = 'light') {
+  const ms = HAPTIC[type] ?? HAPTIC.light;
+
+  // Primary: Vibration API (Android Chrome, some desktop)
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+    return;
+  }
+
+  // Fallback: inaudible 1-sample Web Audio click (iOS / desktop)
+  try {
+    if (!hapticCtx) hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = hapticCtx.createBuffer(1, hapticCtx.sampleRate * 0.002, hapticCtx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = (i / ch.length < 0.5 ? 1 : -1) * 0.001;
+    const src = hapticCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(hapticCtx.destination);
+    src.start();
+  } catch (_) {}
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // UI click sound
 const clickSound = new Audio('sounds/click.mp3');
 clickSound.volume = 0.5;
@@ -225,6 +255,7 @@ function loadSavedTheme() {
 function setupThemeSelector() {
   elements.themeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
+      haptic('light');
       playThemeSwitchSound();
       setTheme(btn.dataset.theme);
     });
@@ -236,6 +267,7 @@ function setupThemeSelector() {
       const current = document.body.getAttribute('data-theme') || 'ocean';
       const idx = THEMES.indexOf(current);
       const next = THEMES[(idx + 1) % THEMES.length];
+      haptic('light');
       playThemeSwitchSound();
       setTheme(next);
     });
@@ -258,6 +290,7 @@ function buildTechniqueToolbar() {
     iconBtn.setAttribute('title', technique.name);
 
     iconBtn.addEventListener('click', () => {
+      haptic('light');
       playClickSound();
       selectTechnique(technique.id);
     });
@@ -419,6 +452,7 @@ function resetTimeline() {
 
 let lastFrameTime = 0;
 let animationFrameId = null;
+let lastHapticSecond = -1; // tracks last second boundary for per-second tick
 
 function startSession() {
   if (state.isPlaying && !state.isPaused) return;
@@ -437,6 +471,7 @@ function startSession() {
 
   state.phaseStartTime = performance.now() - state.phaseElapsed;
   lastFrameTime = performance.now();
+  lastHapticSecond = -1;
 
   updatePlayButton();
   elements.roundDisplay.style.opacity = '1';
@@ -543,6 +578,13 @@ function updatePhase(currentTime) {
 
   state.phaseElapsed = currentTime - state.phaseStartTime;
   const remaining = Math.max(0, phaseDuration * 1000 - state.phaseElapsed);
+
+  // Per-second haptic tick while playing
+  const elapsedSec = Math.floor(state.phaseElapsed / 1000);
+  if (elapsedSec !== lastHapticSecond) {
+    lastHapticSecond = elapsedSec;
+    haptic('medium');
+  }
 
   updatePhaseDisplay(currentPhase, remaining / 1000);
 
@@ -670,6 +712,7 @@ function advancePhase() {
   state.currentPhaseIndex++;
   state.phaseStartTime = performance.now();
   state.phaseElapsed = 0;
+  lastHapticSecond = -1;
 
   if (state.currentPhaseIndex < state.phaseSequence.length) {
     const nextPhase = state.phaseSequence[state.currentPhaseIndex];
@@ -750,6 +793,7 @@ function handleTapToRelease() {
   state.currentPhaseIndex++;
   state.phaseStartTime = performance.now();
   state.phaseElapsed = 0;
+  lastHapticSecond = -1;
 
   if (state.currentPhaseIndex < state.phaseSequence.length) {
     const nextPhase = state.phaseSequence[state.currentPhaseIndex];
@@ -826,6 +870,7 @@ function setupEventListeners() {
   elements.resonanceSlider.addEventListener('input', (e) => {
     state.resonancePace = parseFloat(e.target.value);
     elements.resonanceValue.textContent = state.resonancePace.toFixed(1) + 's';
+    haptic('light');
     playSliderTick(state.resonancePace);
 
     // Reload phase sequence with new pace
@@ -843,6 +888,7 @@ function setupEventListeners() {
 
   // Mute toggle
   elements.muteBtn.addEventListener('click', () => {
+    haptic('light');
     state.isMuted = !state.isMuted;
     elements.muteBtn.classList.toggle('muted', state.isMuted);
   });
