@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breathe | Nervous System Regulation</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body data-theme="ocean">
+  <!-- Subtle pulsing background layers -->
+  <div class="bg-pulse-container">
+    <div class="bg-pulse-layer layer-1"></div>
+    <div class="bg-pulse-layer layer-2"></div>
+    <div class="bg-pulse-layer layer-3"></div>
+  </div>
+
+  <!-- Theme Selector - Fixed top right -->
+  <div class="theme-selector-fixed">
+    <div class="theme-options">
+      <button class="theme-btn active" data-theme="ocean" aria-label="Ocean theme" title="Ocean"></button>
+      <button class="theme-btn" data-theme="sunset" aria-label="Sunset theme" title="Sunset"></button>
+      <button class="theme-btn" data-theme="forest" aria-label="Forest theme" title="Forest"></button>
+      <button class="theme-btn" data-theme="lavender" aria-label="Dim theme" title="Dim"></button>
+      <button class="theme-btn" data-theme="midnight" aria-label="Mono theme" title="Mono"></button>
+    </div>
+  </div>
+
+  <!-- Mute Toggle - Fixed top left -->
+  <button class="mute-toggle" id="mute-btn" aria-label="Toggle sound">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" id="sound-waves"/>
+    </svg>
+  </button>
+
+  <!-- Main breathing stage -->
+  <main class="breathing-stage">
+    <!-- Technique Info Header -->
+    <div class="technique-header" id="technique-header">
+      <h1 class="technique-name" id="technique-name">Box Breathing</h1>
+      <p class="technique-description" id="technique-description">Equal inhale, hold, exhale, hold. Used by Navy SEALs to stay calm under pressure.</p>
+    </div>
+
+    <div class="phase-display">
+      <div class="breath-orb" id="breath-orb">
+        <div class="orb-ring orb-ring-outer"></div>
+        <div class="orb-ring orb-ring-inner"></div>
+        <div class="orb-content">
+          <button class="orb-play-btn" id="play-btn" aria-label="Start or pause breathing">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          </button>
+          <span class="orb-status" id="orb-status" style="display: none;"></span>
+          <span class="orb-timer" id="orb-timer" style="display: none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase Timeline Visualization -->
+    <div class="phase-timeline" id="phase-timeline">
+      <!-- Track and steps injected by JS -->
+    </div>
+
+    <div class="round-display" id="round-display" style="opacity: 0;">
+      Round <span id="current-round">1</span> of <span id="total-rounds">4</span>
+    </div>
+  </main>
+
+  <!-- Floating Technique Toolbar - Bottom Center -->
+  <div class="technique-toolbar" id="technique-toolbar">
+    <!-- Icons injected by JS -->
+  </div>
+
+  <div class="completion-message" id="completion-message" style="display: none;">
+    <p>Well done</p>
+    <span class="subtext">Your nervous system thanks you</span>
+  </div>
+
+  <!-- Resonance Pace Control - Fixed bottom right, shown only for Resonance Breathing -->
+  <div class="resonance-controls-stage" id="resonance-controls" style="display: none;">
+    <label for="resonance-slider">Breathing Pace</label>
+    <div class="resonance-slider-row">
+      <span class="resonance-label-min">3s</span>
+      <input type="range" id="resonance-slider" min="3" max="8" step="0.5" value="5.5">
+      <span class="resonance-label-max">8s</span>
+    </div>
+    <span class="resonance-value-display" id="resonance-value">5.5s</span>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
