@@ -26,6 +26,8 @@
       <button class="theme-btn" data-theme="lavender" aria-label="Dim theme" title="Dim"></button>
       <button class="theme-btn" data-theme="midnight" aria-label="Mono theme" title="Mono"></button>
     </div>
+    <!-- Mobile: single swatch that cycles through themes -->
+    <button class="theme-cycle-btn" id="theme-cycle-btn" aria-label="Change theme"></button>
   </div>
 
   <!-- Mute Toggle - Fixed top left -->
@@ -41,8 +43,8 @@
     <!-- Technique Info Header -->
     <div class="technique-header" id="technique-header">
       <h1 class="technique-name" id="technique-name">Box Breathing</h1>
-      <p class="technique-description" id="technique-description">Equal inhale, hold, exhale, hold. Used by Navy SEALs to stay calm under pressure.</p>
     </div>
+    <p class="technique-description" id="technique-description">Equal inhale, hold, exhale, hold. Used by Navy SEALs to stay calm under pressure.</p>
 
     <div class="phase-display">
       <div class="breath-orb" id="breath-orb">
@@ -85,7 +87,14 @@
 
   <!-- Resonance Pace Control - Fixed bottom right, shown only for Resonance Breathing -->
   <div class="resonance-controls-stage" id="resonance-controls" style="display: none;">
-    <label for="resonance-slider">Breathing Pace</label>
+    <div class="resonance-header">
+      <label for="resonance-slider">Breathing Pace</label>
+      <button class="resonance-close-btn" id="resonance-close-btn" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
     <div class="resonance-slider-row">
       <span class="resonance-label-min">3s</span>
       <input type="range" id="resonance-slider" min="3" max="8" step="0.5" value="5.5">
