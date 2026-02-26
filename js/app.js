@@ -23,31 +23,23 @@ const state = {
 let audioCtx = null;
 
 // ─── Haptic feedback ──────────────────────────────────────────────────────────
-// Patterns (ms): light = quick tap, medium = second tick, strong = action
-const HAPTIC = { light: 8, medium: 14, strong: 22 };
-
-// Web Audio context reused for silent fallback click when vibration unavailable
-let hapticCtx = null;
+// Durations in ms — kept generous so they register on Android hardware
+const HAPTIC = { light: 25, medium: 40, strong: 60 };
 
 function haptic(type = 'light') {
   const ms = HAPTIC[type] ?? HAPTIC.light;
-
-  // Primary: Vibration API (Android Chrome, some desktop)
-  if (navigator.vibrate) {
-    navigator.vibrate(ms);
-    return;
-  }
-
-  // Fallback: inaudible 1-sample Web Audio click (iOS / desktop)
   try {
-    if (!hapticCtx) hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const buf = hapticCtx.createBuffer(1, hapticCtx.sampleRate * 0.002, hapticCtx.sampleRate);
-    const ch = buf.getChannelData(0);
-    for (let i = 0; i < ch.length; i++) ch[i] = (i / ch.length < 0.5 ? 1 : -1) * 0.001;
-    const src = hapticCtx.createBufferSource();
-    src.buffer = buf;
-    src.connect(hapticCtx.destination);
-    src.start();
+    if (typeof navigator.vibrate === 'function') {
+      navigator.vibrate(ms);
+    }
+  } catch (_) {}
+}
+
+// Per-second tick is scheduled via setTimeout from inside rAF so it fires
+// as a "fresh" task and isn't silently blocked on some Android builds.
+function hapticTick() {
+  try {
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(HAPTIC.medium);
   } catch (_) {}
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -579,11 +571,12 @@ function updatePhase(currentTime) {
   state.phaseElapsed = currentTime - state.phaseStartTime;
   const remaining = Math.max(0, phaseDuration * 1000 - state.phaseElapsed);
 
-  // Per-second haptic tick while playing
+  // Per-second haptic tick while playing — dispatched via setTimeout so it
+  // runs as a fresh task rather than inside rAF (avoids silent blocking on Android)
   const elapsedSec = Math.floor(state.phaseElapsed / 1000);
   if (elapsedSec !== lastHapticSecond) {
     lastHapticSecond = elapsedSec;
-    haptic('medium');
+    setTimeout(hapticTick, 0);
   }
 
   updatePhaseDisplay(currentPhase, remaining / 1000);
