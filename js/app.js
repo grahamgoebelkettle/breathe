@@ -22,6 +22,55 @@ const state = {
 // Audio Context for soft chimes
 let audioCtx = null;
 
+// UI click sound
+const clickSound = new Audio('sounds/click.mp3');
+clickSound.volume = 0.5;
+
+function playClickSound() {
+  if (state.isMuted) return;
+  clickSound.currentTime = 0;
+  clickSound.play().catch(() => {});
+}
+
+const sliderTickSound = new Audio('sounds/slider-tick.mp3');
+sliderTickSound.volume = 0.35;
+
+const themeSwitchSound = new Audio('sounds/theme-switch.ogg');
+themeSwitchSound.volume = 0.45;
+
+function playThemeSwitchSound() {
+  if (state.isMuted) return;
+  themeSwitchSound.currentTime = 0;
+  themeSwitchSound.play().catch(() => {});
+}
+
+const playSound = new Audio('sounds/play.mp3');
+playSound.volume = 0.55;
+
+const pauseSound = new Audio('sounds/pause.mp3');
+pauseSound.volume = 0.55;
+
+function playPlaySound() {
+  if (state.isMuted) return;
+  playSound.currentTime = 0;
+  playSound.play().catch(() => {});
+}
+
+function playPauseSound() {
+  if (state.isMuted) return;
+  pauseSound.currentTime = 0;
+  pauseSound.play().catch(() => {});
+}
+let lastSliderValue = null;
+
+function playSliderTick(value) {
+  if (state.isMuted) return;
+  if (value === lastSliderValue) return;
+  lastSliderValue = value;
+  sliderTickSound.currentTime = 0;
+  sliderTickSound.play().catch(() => {});
+}
+
 // Abstract icons for each technique (SVG paths)
 const techniqueIcons = {
   box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M12 8v8"/></svg>`,
@@ -60,6 +109,8 @@ const elements = {
   themeCycleBtn: document.getElementById('theme-cycle-btn'),
   phaseTimeline: document.getElementById('phase-timeline'),
   breathOrb: document.getElementById('breath-orb'),
+  progressCircle: document.getElementById('orb-progress-circle'),
+  progressRing: document.querySelector('.orb-progress-ring'),
 };
 
 // ============================================
@@ -174,6 +225,7 @@ function loadSavedTheme() {
 function setupThemeSelector() {
   elements.themeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
+      playThemeSwitchSound();
       setTheme(btn.dataset.theme);
     });
   });
@@ -184,6 +236,7 @@ function setupThemeSelector() {
       const current = document.body.getAttribute('data-theme') || 'ocean';
       const idx = THEMES.indexOf(current);
       const next = THEMES[(idx + 1) % THEMES.length];
+      playThemeSwitchSound();
       setTheme(next);
     });
   }
@@ -204,7 +257,10 @@ function buildTechniqueToolbar() {
     iconBtn.setAttribute('aria-label', technique.name);
     iconBtn.setAttribute('title', technique.name);
 
-    iconBtn.addEventListener('click', () => selectTechnique(technique.id));
+    iconBtn.addEventListener('click', () => {
+      playClickSound();
+      selectTechnique(technique.id);
+    });
 
     elements.techniqueToolbar.appendChild(iconBtn);
   });
@@ -367,6 +423,7 @@ let animationFrameId = null;
 function startSession() {
   if (state.isPlaying && !state.isPaused) return;
 
+  playPlaySound();
   initAudio();
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume();
@@ -376,6 +433,7 @@ function startSession() {
   state.isPaused = false;
 
   setBreathingActive(true);
+  if (elements.progressCircle) elements.progressCircle.classList.add('active');
 
   state.phaseStartTime = performance.now() - state.phaseElapsed;
   lastFrameTime = performance.now();
@@ -391,10 +449,12 @@ function startSession() {
 function pauseSession() {
   if (!state.isPlaying || state.isPaused) return;
 
+  playPauseSound();
   state.isPaused = true;
   cancelAnimationFrame(animationFrameId);
 
   setBreathingActive(false);
+  if (elements.progressCircle) elements.progressCircle.classList.remove('active');
   updatePlayButton();
 }
 
@@ -406,6 +466,10 @@ function stopSession() {
 
   cancelAnimationFrame(animationFrameId);
 
+  if (elements.progressCircle) {
+    elements.progressCircle.classList.remove('active');
+    elements.progressCircle.style.strokeDashoffset = 0;
+  }
   if (elements.orbStatus) { elements.orbStatus.textContent = ''; elements.orbStatus.style.display = 'none'; }
   if (elements.orbTimer) { elements.orbTimer.textContent = ''; elements.orbTimer.style.display = 'none'; elements.orbTimer.classList.remove('hidden'); }
   if (elements.playBtn) elements.playBtn.style.display = '';
@@ -489,6 +553,12 @@ function updatePhase(currentTime) {
     : 1;
   updateBreathOrb(phaseType, phaseProgress, state.phaseElapsed);
 
+  // Drive inner progress ring — shows time remaining (full → empty, clockwise drain)
+  if (elements.progressCircle) {
+    const circumference = 496;
+    elements.progressCircle.style.strokeDashoffset = -(phaseProgress * circumference);
+  }
+
   // Check phase completion
   if (remaining <= 0) {
     advancePhase();
@@ -550,14 +620,17 @@ function updateBreathOrb(phaseType, progress = 0, phaseElapsedMs = 0) {
     outerScale = orbPulseBaseOuter;
     innerScale = orbPulseBaseInner;
 
-    // Sine mapped 0→1, period = 2 * 2.5 = 5 s
-    const t = (Math.sin((phaseElapsedMs / 1000) * (Math.PI / 2.5)) + 1) / 2;
-    const near  = `color-mix(in srgb, var(--accent, #a8c5e2) ${Math.round(16 + t * 16)}%, transparent)`;
-    const mid   = `color-mix(in srgb, var(--accent, #a8c5e2) ${Math.round(7  + t * 10)}%, transparent)`;
-    const far   = `color-mix(in srgb, var(--accent, #a8c5e2) ${Math.round(3  + t * 6 )}%, transparent)`;
-    const inner = `color-mix(in srgb, var(--accent, #a8c5e2) ${Math.round(3  + t * 5 )}%, transparent)`;
+    // Sine starts at -π/2 so t=0 at phaseElapsed=0 — matches the CSS baseline exactly
+    const t = (Math.sin((phaseElapsedMs / 1000) * (Math.PI / 2.5) - Math.PI / 2) + 1) / 2;
+    const c = (pct) => `color-mix(in srgb, var(--accent, #a8c5e2) ${pct}%, transparent)`;
     if (outerRing) {
-      outerRing.style.boxShadow = `0 0 30px ${near}, 0 0 80px ${mid}, 0 0 140px ${far}, inset 0 0 30px ${inner}`;
+      // Minimums (t=0) match the CSS .orb-ring-outer box-shadow exactly; maximums are the peak pulse
+      outerRing.style.boxShadow = [
+        `0 0 8px  2px ${c(Math.round(50 + t * 35))}`,
+        `0 0 25px 6px ${c(Math.round(30 + t * 25))}`,
+        `0 0 60px 12px ${c(Math.round(15 + t * 15))}`,
+        `0 0 100px 20px ${c(Math.round(6  + t * 6 ))}`,
+      ].join(', ');
     }
   } else {
     // Clear any hold glow override when leaving hold
@@ -584,6 +657,11 @@ function updateBreathOrb(phaseType, progress = 0, phaseElapsedMs = 0) {
     el.style.animation = 'none';
     el.style.transform = `scale(${innerScale.toFixed(3)})`;
   });
+
+  // Keep progress ring in sync with inner ring scale
+  if (elements.progressRing) {
+    elements.progressRing.style.transform = `rotate(-90deg) scale(${innerScale.toFixed(3)})`;
+  }
 }
 
 function advancePhase() {
@@ -724,6 +802,10 @@ function setupEventListeners() {
   // Play button — only starts the session, never pauses
   elements.playBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // don't bubble to orb handler
+    // Press animation
+    elements.playBtn.classList.remove('pressed');
+    void elements.playBtn.offsetWidth;
+    elements.playBtn.classList.add('pressed');
     if (!state.isPlaying || state.isPaused) {
       startSession();
     }
@@ -744,6 +826,7 @@ function setupEventListeners() {
   elements.resonanceSlider.addEventListener('input', (e) => {
     state.resonancePace = parseFloat(e.target.value);
     elements.resonanceValue.textContent = state.resonancePace.toFixed(1) + 's';
+    playSliderTick(state.resonancePace);
 
     // Reload phase sequence with new pace
     if (!state.isPlaying) {

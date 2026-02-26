@@ -52,8 +52,8 @@ body {
   position: absolute;
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.6;
-  animation: gentlePulse 10s ease-in-out infinite;
+  opacity: 0.8;
+  animation: gentlePulse 8s ease-in-out infinite;
 }
 
 .layer-1 {
@@ -97,10 +97,6 @@ body {
 }
 
 /* Breathing-active state adds more intensity */
-body.breathing-active .bg-pulse-layer {
-  animation-duration: 8s;
-  opacity: 0.8;
-}
 
 /* ============================================
    Color Themes
@@ -511,27 +507,27 @@ body {
    ============================================ */
 .resonance-controls-stage {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: 6.25rem; /* sits above the toolbar (2rem bottom + ~56px toolbar height + gap) */
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 2rem;
+  padding: 0.375rem 0.75rem;
   background: color-mix(in srgb, var(--bg-base, #0a0f1a) 90%, transparent);
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--accent, #a8c5e2) 25%, transparent);
-  min-width: 240px;
   backdrop-filter: blur(10px);
   z-index: 50;
+  height: 56px; /* match toolbar height */
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .resonance-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 100%;
+  display: contents; /* unwrap — label flows inline with siblings */
 }
 
 .resonance-close-btn {
@@ -560,18 +556,20 @@ body {
 }
 
 .resonance-controls-stage label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--text-secondary, #a8c5e2);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .resonance-slider-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
+  gap: 0.5rem;
+  width: 180px;
+  flex-shrink: 0;
 }
 
 .resonance-label-min,
@@ -616,10 +614,13 @@ body {
 }
 
 .resonance-value-display {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 300;
   color: var(--text-primary, #e8eef5);
   font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  text-align: right;
 }
 
 /* ============================================
@@ -658,6 +659,32 @@ body {
   justify-content: center;
 }
 
+/* Rotating corona hotspot */
+.orb-corona {
+  position: absolute;
+  inset: -22px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #5ab0e8 0deg,
+    #48d4a8 90deg,
+    #7060e0 180deg,
+    #c060c0 260deg,
+    #5ab0e8 360deg
+  );
+  filter: blur(16px);
+  -webkit-mask: radial-gradient(circle at center, transparent 71%, black 79%);
+  mask: radial-gradient(circle at center, transparent 71%, black 79%);
+  animation: coronaRotate 9s linear infinite;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+@keyframes coronaRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 /* Outline rings — no blend modes */
 .orb-ring {
   position: absolute;
@@ -669,16 +696,67 @@ body {
 
 .orb-ring-outer {
   inset: 0;
-  border: 2px solid color-mix(in srgb, var(--accent, #a8c5e2) 30%, transparent);
+  border: 1.5px solid rgba(200, 220, 255, 0.55);
   box-shadow:
-    0 0 30px color-mix(in srgb, var(--accent, #a8c5e2) 20%, transparent),
-    0 0 80px color-mix(in srgb, var(--accent, #a8c5e2) 10%, transparent),
-    inset 0 0 30px color-mix(in srgb, var(--accent, #a8c5e2) 8%, transparent);
+    0 0 8px  2px rgba(160, 200, 255, 0.50),
+    0 0 25px 6px rgba(120, 170, 240, 0.25),
+    0 0 60px 12px rgba(100, 140, 220, 0.12),
+    0 0 100px 20px rgba(80, 110, 200, 0.05);
+}
+
+/* Sunset theme — warm orange glow */
+body[data-theme="sunset"] .orb-corona {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 200deg,
+    color-mix(in srgb, var(--accent, #dc8c78) 30%, #f0a040) 245deg,
+    color-mix(in srgb, var(--accent, #dc8c78) 65%, #ffb830) 280deg,
+    color-mix(in srgb, var(--accent, #dc8c78) 30%, #f0a040) 315deg,
+    transparent 360deg
+  );
+}
+
+body[data-theme="sunset"] .orb-ring-outer {
+  border-color: color-mix(in srgb, var(--accent, #dc8c78) 70%, #ffcc60);
+  box-shadow:
+    0 0 8px  2px color-mix(in srgb, var(--accent, #dc8c78) 70%, #e08030),
+    0 0 25px 6px color-mix(in srgb, var(--accent, #dc8c78) 45%, #c06020),
+    0 0 60px 12px color-mix(in srgb, var(--accent, #dc8c78) 20%, #a04010),
+    0 0 100px 20px color-mix(in srgb, var(--accent, #dc8c78) 8%, #803010);
 }
 
 .orb-ring-inner {
   inset: 20px;
-  border: 1px solid color-mix(in srgb, var(--accent, #a8c5e2) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #a8c5e2) 15%, transparent);
+}
+
+/* SVG progress ring — overlays inner ring track */
+.orb-progress-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* start from 12 o'clock; JS also applies scale to match inner ring */
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.orb-progress-circle {
+  fill: none;
+  stroke: var(--accent, #a8c5e2);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  /* circumference = 2π×79 ≈ 496 */
+  stroke-dasharray: 496;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.orb-progress-circle.active {
+  opacity: 0.7;
 }
 
 /* Hold pulse is driven entirely by JS to avoid resetting scale */
@@ -709,18 +787,24 @@ body {
   animation: orbPlayScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+.orb-play-btn.pressed {
+  animation: orbPlayPressed 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 @keyframes orbPlayScaleIn {
   from { transform: scale(0.4); opacity: 0; }
   to   { transform: scale(1);   opacity: 0.7; }
 }
 
+@keyframes orbPlayPressed {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.78); }
+  100% { transform: scale(1); }
+}
+
 .orb-play-btn:hover {
   opacity: 1;
   transform: scale(1.1);
-}
-
-.orb-play-btn:active {
-  transform: scale(0.95);
 }
 
 .orb-play-btn svg {
@@ -733,7 +817,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text-secondary, #a8c5e2);
+  color: var(--accent, #a8c5e2);
   opacity: 0.8;
   transition: opacity 0.4s ease;
 }
@@ -1042,8 +1126,10 @@ body {
   }
 
   .resonance-controls-stage {
-    bottom: 1rem;
-    right: 1rem;
+    bottom: 6rem; /* above the 768px toolbar (bottom: 1.5rem + ~52px toolbar + gap) */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
     padding: 1rem 1.5rem;
     min-width: 220px;
   }
@@ -1090,16 +1176,24 @@ body {
     display: block;
   }
 
-  /* Resonance controls sit above toolbar, centred and same width */
+  /* Resonance controls sit above toolbar, centred — restore column stack on mobile */
   .resonance-controls-stage {
     bottom: 5.5rem;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
+    flex-direction: column;
+    height: auto;
     width: max-content;
     min-width: 0;
     max-width: calc(100vw - 1.5rem);
     padding: 0.875rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .resonance-header {
+    display: flex; /* restore normal flex for close-button layout */
+    width: 100%;
   }
 
   .resonance-slider-row {

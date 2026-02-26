@@ -48,8 +48,13 @@
 
     <div class="phase-display">
       <div class="breath-orb" id="breath-orb">
+        <div class="orb-corona"></div>
         <div class="orb-ring orb-ring-outer"></div>
         <div class="orb-ring orb-ring-inner"></div>
+        <!-- SVG progress ring — animates remaining phase time -->
+        <svg class="orb-progress-ring" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="orb-progress-circle" id="orb-progress-circle" cx="100" cy="100" r="79"/>
+        </svg>
         <div class="orb-content">
           <button class="orb-play-btn" id="play-btn" aria-label="Start or pause breathing">
             <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -88,7 +93,7 @@
   <!-- Resonance Pace Control - Fixed bottom right, shown only for Resonance Breathing -->
   <div class="resonance-controls-stage" id="resonance-controls" style="display: none;">
     <div class="resonance-header">
-      <label for="resonance-slider">Breathing Pace</label>
+      <label for="resonance-slider">Pace</label>
       <button class="resonance-close-btn" id="resonance-close-btn" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M18 6L6 18M6 6l12 12"/>
